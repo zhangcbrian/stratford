@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room 110 Kitty Jump!</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pop-pink: #FF3CAC;
+    --sunny-yellow: #FFE347;
+    --sky-blue: #38BDF8;
+    --lime-green: #84EE39;
+    --tangerine: #FF7B3A;
+    --grape: #A855F7;
+    --candy-red: #FF4757;
+    --mint: #2ED8A3;
+    --bg-deep: #0F0A2E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: 'Fredoka', sans-serif;
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255, 60, 172, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 80%, rgba(168, 85, 247, 0.3) 0%, transparent 60%),
+      var(--bg-deep);
+    animation: bgShift 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgShift {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(30deg); }
+  }
+
+  .game-title {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--sunny-yellow);
+    text-shadow: 3px 3px 0 var(--pop-pink);
+    z-index: 10;
+    margin-bottom: 0.5rem;
+  }
+
+  .game-container {
+    position: relative;
+    z-index: 10;
+    border: 4px solid;
+    border-image: linear-gradient(135deg, var(--pop-pink), var(--sunny-yellow), var(--sky-blue), var(--lime-green), var(--grape)) 1;
+    border-radius: 0;
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(255, 60, 172, 0.2);
+    transition: transform 0.05s;
+  }
+
+  .game-container.shake {
+    animation: screenShake 0.4s ease-out;
+  }
+
+  @keyframes screenShake {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-6px, 4px); }
+    20% { transform: translate(6px, -4px); }
+    30% { transform: translate(-4px, 6px); }
+    40% { transform: translate(4px, -2px); }
+    50% { transform: translate(-2px, 4px); }
+    60% { transform: translate(2px, -2px); }
+    70% { transform: translate(-1px, 1px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .game-container canvas { display: block; }
+
+  .back-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 100;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.4em 1em;
+    border: 2px solid var(--sky-blue);
+    border-radius: 30px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--sky-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .back-btn:hover {
+    background: rgba(56, 189, 248, 0.3);
+    transform: scale(1.05);
+  }
+
+  .score-display {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: var(--sunny-yellow);
+    text-shadow: 2px 2px 0 var(--tangerine);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.2em 1em;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  }
+
+  .score-display.pop {
+    transform: translateX(-50%) scale(1.3);
+  }
+
+  .level-display {
+    position: fixed;
+    top: 55px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mint);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.2em 0.8em;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    z-index: 200;
+    pointer-events: none;
+    animation: confettiFall 1.5s ease-out forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(720deg) scale(0); opacity: 0; }
+  }
+
+  /* Click-to-start overlay */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(15, 10, 46, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    cursor: pointer;
+    transition: opacity 0.4s;
+  }
+  .start-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .start-emoji {
+    font-size: 6rem;
+    animation: startBounce 1s ease-in-out infinite alternate;
+  }
+  @keyframes startBounce {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-20px) scale(1.1); }
+  }
+
+  .start-text {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    background: linear-gradient(90deg, #FF3CAC, #FFE347, #38BDF8, #84EE39, #FF7B3A, #A855F7, #FF3CAC);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rainbowText 2s linear infinite;
+  }
+
+  .start-hint {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: rgba(255,255,255,0.6);
+    animation: hintPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Level transition overlay */
+  .level-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 450;
+    background: rgba(15, 10, 46, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .level-transition.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .level-transition-text {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: var(--sunny-yellow);
+    text-shadow: 4px 4px 0 var(--pop-pink);
+  }
+  .level-transition-sub {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    color: var(--mint);
+  }
+
+  /* Song lyrics overlay */
+  .song-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    background: rgba(15, 10, 46, 0.92);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .song-overlay.active { display: flex; }
+
+  .song-singer {
+    font-size: 5rem;
+    animation: singerBounce 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes singerBounce {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-15px) scale(1.1); }
+  }
+
+  .song-lyrics {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: var(--sunny-yellow);
+    text-align: center;
+    text-shadow: 2px 2px 0 var(--tangerine);
+    max-width: 80%;
+    line-height: 1.4;
+    min-height: 4rem;
+  }
+
+  .song-title-text {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: var(--pop-pink);
+    margin-bottom: 0.5rem;
+  }
+
+  .song-skip {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 1.5rem;
+    animation: hintPulse 1.5s ease-in-out infinite;
+  }
+
+  .song-overlay { cursor: pointer; }
+
+  /* Win / Game Over overlays */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(15, 10, 46, 0.9);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .overlay.active { display: flex; }
+
+  .overlay-title {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(3rem, 8vw, 6rem);
+    background: linear-gradient(90deg, #FF3CAC, #FFE347, #38BDF8, #84EE39, #FF7B3A, #A855F7, #FF3CAC);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rainbowText 2s linear infinite;
+  }
+
+  @keyframes rainbowText {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+
+  .overlay-sub {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    color: var(--sunny-yellow);
+    text-align: center;
+  }
+
+  .overlay-btn {
+    font-family: 'Lilita One', cursive;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    padding: 0.5em 1.5em;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--lime-green), var(--mint));
+    color: var(--bg-deep);
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+    margin-top: 0.5rem;
+  }
+  .overlay-btn:hover { transform: scale(1.1) translateY(-3px); }
+  .overlay-btn:active { transform: scale(0.95) translateY(2px); }
+
+  .mode-label {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--grape);
+    background: rgba(168, 85, 247, 0.15);
+    padding: 0.3em 0.8em;
+    border-radius: 20px;
+    border: 1px solid var(--grape);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Puppy speech bubble */
+  .puppy-tip {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    z-index: 100;
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1.1rem;
+    color: #fff;
+    background: rgba(168, 85, 247, 0.8);
+    padding: 0.6em 1em;
+    border-radius: 18px;
+    max-width: 280px;
+    backdrop-filter: blur(4px);
+    border: 2px solid var(--grape);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+  }
+  .puppy-tip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+
+<!-- Click-to-start overlay (fixes focus + audio) -->
+<div class="start-overlay" id="startOverlay">
+  <div class="start-emoji">🐱</div>
+  <div class="start-text">READY TO PLAY?</div>
+  <div class="start-hint">Click anywhere or press any key!</div>
+</div>
+
+<!-- Level transition -->
+<div class="level-transition" id="levelTransition">
+  <div class="level-transition-text" id="levelTransText"></div>
+  <div class="level-transition-sub" id="levelTransSub"></div>
+</div>
+
+<a href="slides.html" class="back-btn">&#x2B05;&#xFE0F; Back to slides</a>
+<div class="score-display" id="scoreDisplay">Stars: 0 / 5</div>
+<div class="level-display" id="levelDisplay">Level 1 - Easy</div>
+<div class="mode-label" id="modeLabel">PLATFORMER</div>
+
+<div class="game-title" id="gameTitle">Room 110 Kitty Jump!</div>
+<div class="game-container" id="gameContainer"></div>
+
+<!-- Song overlay -->
+<div class="song-overlay" id="songOverlay">
+  <div class="song-singer" id="songSinger"></div>
+  <div class="song-title-text" id="songTitleText"></div>
+  <div class="song-lyrics" id="songLyrics"></div>
+  <div class="song-skip">Click or press any key to skip</div>
+</div>
+
+<!-- Win overlay -->
+<div class="overlay" id="winOverlay">
+  <div class="overlay-title">YOU WIN!</div>
+  <div class="overlay-sub" id="winSub"></div>
+  <button class="overlay-btn" id="nextLevelBtn">&#x27A1;&#xFE0F; NEXT LEVEL!</button>
+  <a href="slides.html" class="overlay-btn" style="background: linear-gradient(135deg, var(--sky-blue), var(--grape)); color: #fff;">&#x2B05;&#xFE0F; Back to slides</a>
+</div>
+
+<!-- Game Over overlay -->
+<div class="overlay" id="gameOverOverlay">
+  <div class="overlay-title" style="-webkit-text-fill-color: var(--candy-red); background: none;">OH NO!</div>
+  <div class="overlay-sub" id="gameOverSub">The purple thing got you!</div>
+  <div class="overlay-sub">But first... the cat sings!</div>
+  <button class="overlay-btn" id="retryBtn">&#x1F504; TRY AGAIN!</button>
+</div>
+
+<!-- Puppy tip -->
+<div class="puppy-tip" id="puppyTip"></div>
+
+<script src="https://unpkg.com/kaboom@3000.1.17/dist/kaboom.mjs" type="module"></script>
+<script type="module">
+import kaboom from "https://unpkg.com/kaboom@3000.1.17/dist/kaboom.mjs";
+
+// =====================================================
+// GAME STATE
+// =====================================================
+let currentLevel = 1;
+const MAX_LEVEL = 3;
+let score = 0;
+let totalStars = 0;
+let gameActive = false; // starts false until click-to-start
+let isSinging = false;
+let gameStarted = false;
+
+// =====================================================
+// PREVENT PAGE SCROLL on arrow keys / space
+// =====================================================
+window.addEventListener('keydown', (e) => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space',' '].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+// =====================================================
+// SOUND SYSTEM
+// =====================================================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(type) {
+  try {
+    ensureAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    switch (type) {
+      case 'collect':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        break;
+      case 'hit':
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        break;
+      case 'win':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(1047, audioCtx.currentTime + 0.45);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.7);
+        break;
+      case 'jump':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        break;
+      case 'levelup':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(392, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(523, audioCtx.currentTime + 0.12);
+        osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.24);
+        osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.36);
+        osc.frequency.setValueAtTime(1047, audioCtx.currentTime + 0.48);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+        break;
+    }
+  } catch (e) {}
+}
+
+// Play a melody: array of [freq, duration] pairs scheduled in sequence
+function playMelody(notes) {
+  try {
+    ensureAudio();
+    let t = audioCtx.currentTime;
+    for (const [freq, dur] of notes) {
+      if (freq === 0) { t += dur; continue; } // rest
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.setValueAtTime(0.22, t + dur * 0.7);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.95);
+      osc.start(t);
+      osc.stop(t + dur);
+      t += dur;
+    }
+  } catch(e) {}
+}
+
+// =====================================================
+// SINGING SYSTEM — with real melodies + click to skip!
+// =====================================================
+
+// Note frequencies
+const C4=262, D4=294, E4=330, F4=349, G4=392, A4=440, B4=494, C5=523, D5=587, E5=659, F5=698, G5=784;
+const R=0; // rest
+
+const SONGS = [
+  {
+    title: "ABCs",
+    singer: "🐱",
+    lyrics: [
+      // "Twinkle Twinkle" / ABC melody
+      { text: "A B C D E F G...",
+        melody: [[C4,0.3],[C4,0.3],[G4,0.3],[G4,0.3],[A4,0.3],[A4,0.3],[G4,0.6]] },
+      { text: "H I J K L M N O P...",
+        melody: [[F4,0.3],[F4,0.3],[E4,0.3],[E4,0.3],[D4,0.3],[D4,0.3],[C4,0.6]] },
+      { text: "Q R S... T U V...",
+        melody: [[G4,0.3],[G4,0.3],[F4,0.3],[F4,0.3],[E4,0.3],[E4,0.3],[D4,0.6]] },
+      { text: "W X... Y and Z!",
+        melody: [[G4,0.3],[G4,0.3],[F4,0.3],[F4,0.3],[E4,0.3],[E4,0.3],[D4,0.6]] },
+      { text: "Now I know my ABCs!",
+        melody: [[C4,0.3],[C4,0.3],[G4,0.3],[G4,0.3],[A4,0.3],[A4,0.3],[G4,0.6]] },
+      { text: "Next time won't you sing with me!",
+        melody: [[F4,0.3],[F4,0.3],[E4,0.3],[E4,0.3],[D4,0.4],[D4,0.2],[C4,0.8]] },
+    ]
+  },
+  {
+    title: "Wheels on the Bus",
+    singer: "🐱",
+    lyrics: [
+      { text: "The wheels on the bus go",
+        melody: [[C4,0.25],[C4,0.25],[C4,0.25],[E4,0.25],[G4,0.25],[G4,0.5]] },
+      { text: "round and round! 🚌",
+        melody: [[E4,0.4],[C4,0.4],[E4,0.4],[C4,0.6]] },
+      { text: "Round and round!",
+        melody: [[E4,0.4],[C4,0.4],[E4,0.4],[C4,0.6]] },
+      { text: "Round and round!",
+        melody: [[E4,0.4],[C4,0.4],[E4,0.4],[C4,0.6]] },
+      { text: "The wheels on the bus go round and round",
+        melody: [[C4,0.25],[C4,0.25],[C4,0.25],[E4,0.25],[G4,0.25],[G4,0.25],[E4,0.3],[C4,0.3],[E4,0.3],[C4,0.5]] },
+      { text: "All through the town! 🏘",
+        melody: [[D4,0.3],[E4,0.3],[F4,0.3],[R,0.15],[F4,0.3],[E4,0.3],[D4,0.3],[C4,0.8]] },
+    ]
+  },
+  {
+    title: "1, 2, 3!",
+    singer: "🐱",
+    lyrics: [
+      { text: "1... 2... 3...",
+        melody: [[C4,0.4],[R,0.1],[D4,0.4],[R,0.1],[E4,0.5]] },
+      { text: "4... 5... 6...",
+        melody: [[F4,0.4],[R,0.1],[G4,0.4],[R,0.1],[A4,0.5]] },
+      { text: "7... 8... 9...",
+        melody: [[B4,0.4],[R,0.1],[C5,0.4],[R,0.1],[D5,0.5]] },
+      { text: "10! We can count to TEN! 🎉",
+        melody: [[E5,0.3],[R,0.1],[C5,0.25],[D5,0.25],[E5,0.25],[C5,0.25],[G4,0.25],[C5,0.8]] },
+    ]
+  },
+  {
+    title: "Happy Valentine's Day Bus Mash-up!",
+    singer: "🐱",
+    lyrics: [
+      { text: "Happy Valentine's Day! 💕",
+        melody: [[G4,0.3],[E4,0.3],[G4,0.3],[A4,0.3],[G4,0.3],[E4,0.3],[C5,0.6]] },
+      { text: "The LOVE bus goes round and round! 🚌💖",
+        melody: [[C4,0.25],[C4,0.25],[E4,0.25],[G4,0.3],[E4,0.35],[C4,0.35],[E4,0.35],[C4,0.5]] },
+      { text: "Hearts and wheels spinning around!",
+        melody: [[G4,0.3],[A4,0.3],[G4,0.3],[E4,0.3],[C4,0.3],[D4,0.3],[E4,0.6]] },
+      { text: "Roses are red, violets are blue 🌹",
+        melody: [[E4,0.3],[E4,0.3],[F4,0.3],[G4,0.4],[R,0.1],[G4,0.3],[A4,0.3],[G4,0.3],[F4,0.3],[E4,0.5]] },
+      { text: "The wheels keep turning for YOU! 💝",
+        melody: [[C4,0.25],[E4,0.25],[G4,0.3],[G4,0.3],[A4,0.3],[G4,0.3],[R,0.1],[C5,0.8]] },
+    ]
+  },
+  {
+    title: "Llama Song!",
+    singer: "🦙",
+    lyrics: [
+      { text: "I'm a LLAMA, watch me sing! 🦙",
+        melody: [[E4,0.3],[G4,0.3],[A4,0.3],[G4,0.3],[E4,0.3],[G4,0.3],[A4,0.6]] },
+      { text: "La la la llama everything!",
+        melody: [[C5,0.25],[C5,0.25],[C5,0.25],[A4,0.3],[G4,0.25],[E4,0.25],[G4,0.25],[A4,0.6]] },
+      { text: "Fluffy neck and tiny ears!",
+        melody: [[G4,0.3],[A4,0.3],[C5,0.3],[A4,0.3],[G4,0.3],[E4,0.3],[D4,0.6]] },
+      { text: "Llama llama, everybody cheers! 🎶",
+        melody: [[E4,0.25],[E4,0.25],[G4,0.25],[A4,0.25],[R,0.1],[C5,0.25],[C5,0.25],[A4,0.25],[G4,0.25],[A4,0.6]] },
+      { text: "LLAMA LLAMA LLAMA! 🦙🦙🦙",
+        melody: [[C5,0.3],[D5,0.3],[E5,0.4],[R,0.1],[C5,0.3],[D5,0.3],[E5,0.4],[R,0.1],[G5,0.8]] },
+    ]
+  },
+];
+
+const songOverlay = document.getElementById('songOverlay');
+const songSinger = document.getElementById('songSinger');
+const songTitleText = document.getElementById('songTitleText');
+const songLyrics = document.getElementById('songLyrics');
+
+// Skip signal: set to true to skip current song
+let skipSong = false;
+
+songOverlay.addEventListener('click', () => { skipSong = true; });
+document.addEventListener('keydown', (e) => {
+  if (isSinging && !['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+    skipSong = true;
+  }
+});
+
+// Calculate total duration of a melody
+function melodyDuration(melody) {
+  return melody.reduce((sum, [, dur]) => sum + dur, 0);
+}
+
+async function singAllSongs(onDone) {
+  isSinging = true;
+  songOverlay.classList.add('active');
+
+  for (const song of SONGS) {
+    skipSong = false;
+    songSinger.textContent = song.singer;
+    songTitleText.textContent = "🎵 " + song.title + " 🎵";
+    songLyrics.textContent = "";
+    await sleep(400);
+    if (skipSong) continue;
+
+    for (const line of song.lyrics) {
+      if (skipSong) break;
+      songLyrics.textContent = line.text;
+      playMelody(line.melody);
+      // Wait for the melody to finish (or skip)
+      const dur = melodyDuration(line.melody) * 1000 + 200;
+      const start = Date.now();
+      while (Date.now() - start < dur && !skipSong) {
+        await sleep(50);
+      }
+    }
+    if (!skipSong) await sleep(500);
+  }
+
+  songOverlay.classList.remove('active');
+  isSinging = false;
+  if (onDone) onDone();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// =====================================================
+// CONFETTI
+// =====================================================
+function burstConfetti(x, y) {
+  const colors = ['#FF3CAC', '#FFE347', '#38BDF8', '#84EE39', '#FF7B3A', '#A855F7', '#FF4757', '#2ED8A3'];
+  for (let i = 0; i < 25; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 160;
+    c.style.left = x + 'px';
+    c.style.top = y + 'px';
+    c.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    c.style.setProperty('--dy', Math.sin(angle) * dist - 80 + 'px');
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.width = (5 + Math.random() * 8) + 'px';
+    c.style.height = (5 + Math.random() * 8) + 'px';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 1500);
+  }
+}
+
+// =====================================================
+// SCREEN SHAKE
+// =====================================================
+const gameContainerEl = document.getElementById('gameContainer');
+function screenShake() {
+  gameContainerEl.classList.remove('shake');
+  void gameContainerEl.offsetWidth;
+  gameContainerEl.classList.add('shake');
+  setTimeout(() => gameContainerEl.classList.remove('shake'), 400);
+}
+
+// =====================================================
+// SCORE POP
+// =====================================================
+const scoreEl = document.getElementById('scoreDisplay');
+function popScore() {
+  scoreEl.classList.add('pop');
+  setTimeout(() => scoreEl.classList.remove('pop'), 200);
+}
+
+// =====================================================
+// PUPPY TIP SYSTEM
+// =====================================================
+const puppyTips = [
+  "🐶 Woof! Jump over the purple things!",
+  "🐕 Arf! Collect all the stars to win!",
+  "🐶 Woof woof! Use arrow keys to move!",
+  "🐕 Good job! Keep collecting stars!",
+  "🐶 Watch out for the purple meanies!",
+  "🐕 You can do it! Jump with UP arrow!",
+  "🐶 Ruff! The elephant is your friend!",
+  "🐕 Arf arf! Stars make you stronger!",
+  "🐶 Woof! Don't touch the purple things!",
+  "🐕 Almost there! Keep going!",
+];
+const puppyTipEl = document.getElementById('puppyTip');
+let tipTimeout;
+
+function showPuppyTip(customMsg) {
+  const msg = customMsg || puppyTips[Math.floor(Math.random() * puppyTips.length)];
+  puppyTipEl.textContent = msg;
+  puppyTipEl.classList.add('visible');
+  clearTimeout(tipTimeout);
+  tipTimeout = setTimeout(() => puppyTipEl.classList.remove('visible'), 4000);
+}
+
+// =====================================================
+// SCORE & LEVEL UI
+// =====================================================
+const levelEl = document.getElementById('levelDisplay');
+
+function updateScoreUI() {
+  scoreEl.textContent = 'Stars: ' + score + ' / ' + totalStars;
+}
+
+function updateLevelUI() {
+  const names = ['Easy', 'Medium', 'Hard'];
+  levelEl.textContent = 'Level ' + currentLevel + ' - ' + (names[currentLevel - 1] || 'Hard');
+}
+
+// =====================================================
+// LEVEL TRANSITION
+// =====================================================
+const levelTransEl = document.getElementById('levelTransition');
+const levelTransText = document.getElementById('levelTransText');
+const levelTransSub = document.getElementById('levelTransSub');
+
+async function showLevelTransition(levelNum) {
+  const names = ['Easy', 'Medium', 'Hard'];
+  levelTransText.textContent = "Level " + levelNum + "!";
+  levelTransSub.textContent = names[levelNum - 1] || "Hard";
+  levelTransEl.classList.add('active');
+  playSound('levelup');
+  await sleep(1500);
+  levelTransEl.classList.remove('active');
+  await sleep(300);
+}
+
+// =====================================================
+// KABOOM INIT
+// =====================================================
+const CANVAS_W = 800;
+const CANVAS_H = 500;
+
+const k = kaboom({
+  canvas: (() => {
+    const c = document.createElement('canvas');
+    c.setAttribute('tabindex', '0');
+    document.getElementById('gameContainer').appendChild(c);
+    return c;
+  })(),
+  width: CANVAS_W,
+  height: CANVAS_H,
+  background: [15, 10, 46],
+  global: false,
+  scale: 1,
+});
+
+// =====================================================
+// CLICK-TO-START (fixes focus + enables audio)
+// =====================================================
+const startOverlay = document.getElementById('startOverlay');
+
+function handleGameStart() {
+  if (gameStarted) return;
+  gameStarted = true;
+  ensureAudio();
+  startOverlay.classList.add('hidden');
+
+  // Focus the canvas so Kaboom receives key events
+  const canvas = document.querySelector('#gameContainer canvas');
+  if (canvas) canvas.focus();
+
+  playSound('levelup');
+
+  setTimeout(async () => {
+    await showLevelTransition(1);
+    gameActive = true;
+    showPuppyTip("🐶 Woof! Collect all " + totalStars + " stars! Avoid the purple things!");
+  }, 400);
+}
+
+startOverlay.addEventListener('click', handleGameStart);
+startOverlay.addEventListener('touchstart', handleGameStart);
+document.addEventListener('keydown', function startKey(e) {
+  if (!gameStarted) {
+    handleGameStart();
+    document.removeEventListener('keydown', startKey);
+  }
+});
+
+// Re-focus canvas when clicking on game area
+gameContainerEl.addEventListener('click', () => {
+  const canvas = document.querySelector('#gameContainer canvas');
+  if (canvas) canvas.focus();
+});
+
+// =====================================================
+// LEVEL DEFINITIONS (Easy -> Hard)
+// =====================================================
+const LEVELS = [
+  // Level 1 - Easy
+  {
+    gravity: 1400,
+    playerSpeed: 320,
+    jumpForce: 650,
+    platforms: [
+      [400, 490, 800, 20],
+      [180, 380, 300],
+      [550, 310, 280],
+      [300, 230, 280],
+      [650, 160, 240],
+    ],
+    stars: [[200, 340], [560, 270], [310, 190], [660, 120], [100, 450]],
+    enemies: [
+      { emoji: "👾", x: 650, y: 130, range: [560, 760], speed: 30 },
+    ],
+    puppies: [[400, 450]],
+    elephant: [700, 450],
+    llama: [60, 450],
+  },
+  // Level 2 - Medium
+  {
+    gravity: 1600,
+    playerSpeed: 300,
+    jumpForce: 620,
+    platforms: [
+      [400, 490, 800, 20],
+      [150, 390, 220],
+      [420, 320, 200],
+      [650, 250, 200],
+      [300, 180, 200],
+      [100, 120, 180],
+    ],
+    stars: [[160, 350], [430, 280], [660, 210], [310, 140], [110, 80], [700, 450]],
+    enemies: [
+      { emoji: "👾", x: 420, y: 290, range: [330, 510], speed: 50 },
+      { emoji: "👾", x: 300, y: 150, range: [210, 390], speed: 40 },
+    ],
+    puppies: [[500, 450], [200, 450]],
+    elephant: [700, 450],
+    llama: [60, 450],
+  },
+  // Level 3 - Hard
+  {
+    gravity: 1800,
+    playerSpeed: 340,
+    jumpForce: 680,
+    platforms: [
+      [400, 490, 800, 20],
+      [120, 400, 180],
+      [350, 340, 160],
+      [580, 280, 160],
+      [350, 200, 160],
+      [120, 140, 160],
+      [650, 120, 160],
+    ],
+    stars: [[130, 360], [360, 300], [590, 240], [360, 160], [130, 100], [660, 80], [400, 450]],
+    enemies: [
+      { emoji: "👾", x: 350, y: 310, range: [280, 420], speed: 70 },
+      { emoji: "👾", x: 580, y: 250, range: [510, 650], speed: 60 },
+      { emoji: "👾", x: 350, y: 170, range: [280, 420], speed: 80 },
+    ],
+    puppies: [[300, 450], [500, 450]],
+    elephant: [700, 450],
+    llama: [50, 450],
+  },
+];
+
+// =====================================================
+// BUILD A LEVEL
+// =====================================================
+function startLevel(levelNum) {
+  k.destroyAll("player");
+  k.destroyAll("platform");
+  k.destroyAll("collectible");
+  k.destroyAll("enemy");
+  k.destroyAll("puppy");
+  k.destroyAll("elephant");
+  k.destroyAll("llama");
+  k.destroyAll("movingObstacle");
+
+  score = 0;
+  currentLevel = levelNum;
+
+  const lvl = LEVELS[Math.min(levelNum - 1, LEVELS.length - 1)];
+  totalStars = lvl.stars.length;
+  updateScoreUI();
+  updateLevelUI();
+
+  k.setGravity(lvl.gravity);
+
+  // Platforms (gently bobbing)
+  lvl.platforms.forEach(([x, y, w, h], i) => {
+    k.add([
+      k.rect(w, h || 20),
+      k.pos(x, y),
+      k.area(),
+      k.body({ isStatic: true }),
+      k.color(100, 180, 255),
+      k.anchor("center"),
+      "platform",
+      { origY: y, bobOffset: i * 1.2 },
+    ]);
+  });
+
+  k.onUpdate("platform", (p) => {
+    if (p.origY < 485) {
+      p.pos.y = p.origY + Math.sin(k.time() * 1.2 + p.bobOffset) * 4;
+    }
+  });
+
+  // Player
+  const player = k.add([
+    k.text("🐱", { size: 40 }),
+    k.pos(100, CANVAS_H - 60),
+    k.area({ shape: new k.Rect(k.vec2(0, 0), 36, 40) }),
+    k.anchor("center"),
+    k.body(),
+    "player",
+  ]);
+
+  // Stars (float gently)
+  lvl.stars.forEach(([x, y]) => {
+    k.add([
+      k.text("⭐", { size: 28 }),
+      k.pos(x, y),
+      k.area({ shape: new k.Rect(k.vec2(0, 0), 26, 28) }),
+      k.anchor("center"),
+      "collectible",
+      { origY: y, origX: x },
+    ]);
+  });
+
+  k.onUpdate("collectible", (s) => {
+    s.pos.y = s.origY + Math.sin(k.time() * 2 + s.origX) * 5;
+  });
+
+  // Enemies (purple things!) - bob vertically too for menace
+  lvl.enemies.forEach((def) => {
+    k.add([
+      k.text(def.emoji, { size: 36 }),
+      k.pos(def.x, def.y),
+      k.area({ shape: new k.Rect(k.vec2(0, 0), 34, 36) }),
+      k.anchor("center"),
+      "enemy",
+      { dir: 1, speed: def.speed, lo: def.range[0], hi: def.range[1], origY: def.y },
+    ]);
+  });
+
+  k.onUpdate("enemy", (e) => {
+    e.move(e.speed * e.dir, 0);
+    if (e.pos.x > e.hi) e.dir = -1;
+    if (e.pos.x < e.lo) e.dir = 1;
+    // Enemies bob menacingly
+    e.pos.y = e.origY + Math.sin(k.time() * 3) * 3;
+  });
+
+  // Elephant - friendly!
+  if (lvl.elephant) {
+    const el = k.add([
+      k.text("🐘", { size: 44 }),
+      k.pos(lvl.elephant[0], lvl.elephant[1]),
+      k.area({ shape: new k.Rect(k.vec2(0, 0), 40, 44) }),
+      k.anchor("center"),
+      k.body(),
+      "elephant",
+      { lastGreet: 0 },
+    ]);
+  }
+
+  // Llama - sings!
+  if (lvl.llama) {
+    k.add([
+      k.text("🦙", { size: 40 }),
+      k.pos(lvl.llama[0], lvl.llama[1]),
+      k.area({ shape: new k.Rect(k.vec2(0, 0), 36, 40) }),
+      k.anchor("center"),
+      k.body(),
+      "llama",
+    ]);
+  }
+
+  // Puppies
+  lvl.puppies.forEach(([px, py]) => {
+    k.add([
+      k.text("🐶", { size: 32 }),
+      k.pos(px, py),
+      k.area({ shape: new k.Rect(k.vec2(0, 0), 30, 32) }),
+      k.anchor("center"),
+      k.body(),
+      "puppy",
+      { lastTip: 0 },
+    ]);
+  });
+
+  k.onUpdate("puppy", (pup) => {
+    const p = k.get("player")[0];
+    if (!p) return;
+    const dist = p.pos.dist(pup.pos);
+    if (dist < 80 && k.time() - pup.lastTip > 5) {
+      pup.lastTip = k.time();
+      showPuppyTip();
+    }
+  });
+
+  // Controls
+  k.onKeyDown("left",  () => { if (gameActive) player.move(-lvl.playerSpeed, 0); });
+  k.onKeyDown("right", () => { if (gameActive) player.move(lvl.playerSpeed, 0); });
+  k.onKeyPress("up",   () => { if (gameActive && player.isGrounded()) { player.jump(lvl.jumpForce); playSound('jump'); } });
+  k.onKeyDown("a",     () => { if (gameActive) player.move(-lvl.playerSpeed, 0); });
+  k.onKeyDown("d",     () => { if (gameActive) player.move(lvl.playerSpeed, 0); });
+  k.onKeyPress("w",    () => { if (gameActive && player.isGrounded()) { player.jump(lvl.jumpForce); playSound('jump'); } });
+  k.onKeyPress("space", () => { if (gameActive && player.isGrounded()) { player.jump(lvl.jumpForce); playSound('jump'); } });
+
+  // Collect stars
+  k.onCollide("player", "collectible", (p, c) => {
+    if (!gameActive) return;
+    k.destroy(c);
+    score++;
+    updateScoreUI();
+    popScore();
+    playSound('collect');
+    const canvas = document.querySelector('#gameContainer canvas');
+    const rect = canvas.getBoundingClientRect();
+    burstConfetti(
+      rect.left + (c.pos.x / CANVAS_W) * rect.width,
+      rect.top + (c.pos.y / CANVAS_H) * rect.height
+    );
+
+    if (score >= totalStars) {
+      gameActive = false;
+      playSound('win');
+      showPuppyTip("🐶 WOOF WOOF! YOU DID IT! ALL STARS! 🌟");
+
+      const w = window.innerWidth, h = window.innerHeight;
+      burstConfetti(w * 0.3, h * 0.4);
+      setTimeout(() => burstConfetti(w * 0.7, h * 0.3), 200);
+      setTimeout(() => burstConfetti(w * 0.5, h * 0.5), 400);
+
+      setTimeout(() => {
+        if (currentLevel >= MAX_LEVEL) {
+          document.getElementById('winSub').textContent = "You beat ALL the levels! You're a superstar! 🌟";
+          document.getElementById('nextLevelBtn').textContent = "🔄 PLAY AGAIN!";
+        } else {
+          document.getElementById('winSub').textContent = "Level " + currentLevel + " complete! Ready for harder?";
+          document.getElementById('nextLevelBtn').textContent = "➡️ NEXT LEVEL!";
+        }
+        document.getElementById('winOverlay').classList.add('active');
+      }, 1000);
+    }
+  });
+
+  // Hit purple enemy -> sing then game over
+  k.onCollide("player", "enemy", () => {
+    if (!gameActive) return;
+    gameActive = false;
+    playSound('hit');
+    screenShake();
+    showPuppyTip("🐶 Oh no! The purple thing! But listen to the cat sing!");
+
+    singAllSongs(() => {
+      document.getElementById('gameOverSub').textContent =
+        "The purple thing got you! You had " + score + "/" + totalStars + " stars.";
+      document.getElementById('gameOverOverlay').classList.add('active');
+    });
+  });
+
+  // Touch elephant - friendly!
+  k.onCollide("player", "elephant", (p, el) => {
+    if (!gameActive) return;
+    if (el.lastGreet && k.time() - el.lastGreet < 3) return;
+    el.lastGreet = k.time();
+    showPuppyTip("🐘 The elephant says hi! Elephants are friends!");
+    playSound('collect');
+  });
+
+  // Touch llama - llama song!
+  let llamaSinging = false;
+  k.onCollide("player", "llama", () => {
+    if (!gameActive || llamaSinging) return;
+    llamaSinging = true;
+    showPuppyTip("🦙 The llama wants to sing for you!");
+
+    const llamaSong = SONGS[4];
+    (async () => {
+      skipSong = false;
+      isSinging = true;
+      songOverlay.classList.add('active');
+      songSinger.textContent = llamaSong.singer;
+      songTitleText.textContent = "🎵 " + llamaSong.title + " 🎵";
+      songLyrics.textContent = "";
+      await sleep(400);
+      for (const line of llamaSong.lyrics) {
+        if (skipSong) break;
+        songLyrics.textContent = line.text;
+        playMelody(line.melody);
+        const dur = melodyDuration(line.melody) * 1000 + 200;
+        const start = Date.now();
+        while (Date.now() - start < dur && !skipSong) {
+          await sleep(50);
+        }
+      }
+      songOverlay.classList.remove('active');
+      isSinging = false;
+      const canvas = document.querySelector('#gameContainer canvas');
+      if (canvas) canvas.focus();
+      setTimeout(() => { llamaSinging = false; }, 3000);
+    })();
+  });
+
+  // Fall off screen
+  k.onUpdate("player", (p) => {
+    if (p.pos.y > CANVAS_H + 50) {
+      p.pos = k.vec2(100, CANVAS_H - 60);
+      playSound('hit');
+      screenShake();
+    }
+    if (p.pos.x < -20) p.pos.x = CANVAS_W + 20;
+    if (p.pos.x > CANVAS_W + 20) p.pos.x = -20;
+  });
+}
+
+// =====================================================
+// BUTTON HANDLERS
+// =====================================================
+document.getElementById('nextLevelBtn').addEventListener('click', async () => {
+  document.getElementById('winOverlay').classList.remove('active');
+  const nextLvl = currentLevel >= MAX_LEVEL ? 1 : currentLevel + 1;
+  await showLevelTransition(nextLvl);
+  startLevel(nextLvl);
+  gameActive = true;
+  showPuppyTip("🐶 Woof! Collect all the stars! Watch out for purple!");
+  const canvas = document.querySelector('#gameContainer canvas');
+  if (canvas) canvas.focus();
+});
+
+document.getElementById('retryBtn').addEventListener('click', async () => {
+  document.getElementById('gameOverOverlay').classList.remove('active');
+  await showLevelTransition(currentLevel);
+  startLevel(currentLevel);
+  gameActive = true;
+  showPuppyTip("🐶 Try again! You can do it!");
+  const canvas = document.querySelector('#gameContainer canvas');
+  if (canvas) canvas.focus();
+});
+
+// =====================================================
+// START! (level loads but waits for click-to-start)
+// =====================================================
+startLevel(1);
+
+</script>
+</body>
+</html>

@@ -622,18 +622,16 @@
 
   function handleReady() {
     const btn = document.getElementById('readyBtn');
-    clickCount++;
-    const cheer = cheers[clickCount % cheers.length];
-    btn.textContent = cheer;
+    btn.textContent = "LET'S GOOOO! 🔥";
 
     // Extra big burst
     const rect = btn.getBoundingClientRect();
     burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
 
-    // Reset text after a beat
+    // Navigate to slides after a beat
     setTimeout(() => {
-      btn.innerHTML = `ME! I'M READY! 🙋‍♂️<div class="rainbow-ring"></div>`;
-    }, 1200);
+      window.location.href = 'slides.html';
+    }, 800);
   }
 
   // === REMOVE FLASH OVERLAY ===

@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damon's Dad - Software Engineer Talk!</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pop-pink: #FF3CAC;
+    --sunny-yellow: #FFE347;
+    --sky-blue: #38BDF8;
+    --lime-green: #84EE39;
+    --tangerine: #FF7B3A;
+    --grape: #A855F7;
+    --candy-red: #FF4757;
+    --mint: #2ED8A3;
+    --bg-deep: #0F0A2E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: 'Fredoka', sans-serif;
+    background: var(--bg-deep);
+    cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>⭐</text></svg>") 4 4, auto;
+  }
+
+  /* === ANIMATED BACKGROUND === */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .bg-gradient {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255, 60, 172, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(56, 189, 248, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 80%, rgba(168, 85, 247, 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 60%, rgba(132, 238, 57, 0.2) 0%, transparent 50%),
+      var(--bg-deep);
+    animation: bgShift 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgShift {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(30deg); }
+  }
+
+  /* === SLIDE CONTAINER === */
+  .slides-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* === SHARED SLIDE BASE === */
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    font-family: 'Bubblegum Sans', cursive;
+    color: #fff;
+    user-select: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide.active {
+    display: flex;
+    animation: slideEnter 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+  }
+
+  @keyframes slideEnter {
+    from { opacity: 0; transform: scale(0.85) translateY(30px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* === NAVIGATION BUTTONS === */
+  .nav-btn {
+    position: fixed;
+    z-index: 100;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.2s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.1);
+  }
+
+  .nav-btn:hover {
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.2);
+  }
+
+  .nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+  }
+
+  .nav-prev {
+    left: 20px;
+    background: linear-gradient(135deg, var(--sky-blue), var(--grape));
+    color: white;
+  }
+
+  .nav-next {
+    right: 20px;
+    background: linear-gradient(135deg, var(--lime-green), var(--mint));
+    color: white;
+  }
+
+  .nav-btn.hidden {
+    display: none;
+  }
+
+  /* === PROGRESS BAR === */
+  .progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 8px;
+    z-index: 100;
+    background: linear-gradient(90deg, var(--candy-red), var(--tangerine), var(--sunny-yellow), var(--lime-green), var(--sky-blue), var(--grape), var(--pop-pink));
+    background-size: 200% 100%;
+    animation: progressRainbow 3s linear infinite;
+    transition: width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 12px rgba(255, 60, 172, 0.5);
+  }
+
+  @keyframes progressRainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  /* === SLIDE NUMBER BADGE === */
+  .slide-number {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.1);
+    padding: 0.3em 1em;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* === CONFETTI === */
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    z-index: 200;
+    pointer-events: none;
+    animation: confettiFall 1.5s ease-out forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(720deg) scale(0); opacity: 0; }
+  }
+
+  /* === SPARKLE TRAIL === */
+  .sparkle-trail {
+    position: fixed;
+    pointer-events: none;
+    z-index: 300;
+    font-size: 1.5rem;
+    animation: sparklePopThenFade 0.8s ease-out forwards;
+  }
+
+  @keyframes sparklePopThenFade {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+    100% { transform: scale(0.5) rotate(360deg) translateY(-40px); opacity: 0; }
+  }
+
+/* ==================== SLIDES 1-3 STYLES ==================== */
+
+/* ==================== SLIDE 1 — Intro ==================== */
+.slide-1-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5em;
+  position: relative;
+}
+
+.slide-1-wave {
+  font-size: 8rem;
+  cursor: pointer;
+  animation: wave-anim 1s ease-in-out infinite alternate;
+  transform-origin: 70% 70%;
+  transition: transform 0.2s;
+  filter: drop-shadow(0 0 30px rgba(255, 227, 71, 0.5));
+}
+.slide-1-wave:hover {
+  transform: scale(1.2);
+}
+
+@keyframes wave-anim {
+  0% { transform: rotate(-14deg); }
+  100% { transform: rotate(14deg); }
+}
+
+.slide-1-title {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(3rem, 7vw, 5rem);
+  color: var(--sunny-yellow);
+  text-shadow: 4px 4px 0 var(--pop-pink), 0 0 40px rgba(255, 227, 71, 0.4);
+  opacity: 0;
+  transform: translateY(60px) scale(0.7);
+  animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.slide-1-subtitle {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--sky-blue);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(60px) scale(0.7);
+  animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.4s forwards;
+  text-align: center;
+}
+
+.slide-1-damon {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  color: var(--lime-green);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(60px) scale(0.7);
+  animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.7s forwards;
+  text-align: center;
+}
+
+@keyframes bounce-in {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Floating tool emojis */
+.slide-1-float {
+  position: absolute;
+  font-size: 3rem;
+  opacity: 0.6;
+  animation: float-drift 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.slide-1-float:nth-child(1) { top: 8%; left: 6%; animation-delay: 0s; }
+.slide-1-float:nth-child(2) { top: 12%; right: 8%; animation-delay: 1.5s; }
+.slide-1-float:nth-child(3) { bottom: 10%; left: 10%; animation-delay: 3s; }
+.slide-1-float:nth-child(4) { bottom: 14%; right: 6%; animation-delay: 4.5s; }
+.slide-1-float:nth-child(5) { top: 45%; left: 3%; animation-delay: 2s; }
+.slide-1-float:nth-child(6) { top: 40%; right: 4%; animation-delay: 0.5s; }
+
+@keyframes float-drift {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-20px) rotate(15deg); }
+}
+
+.slide-1-game-link {
+  font-family: 'Fredoka', sans-serif;
+  font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+  font-weight: 600;
+  color: var(--lime-green);
+  text-decoration: none;
+  margin-top: 0.8em;
+  padding: 0.4em 1.2em;
+  border: 2px solid var(--lime-green);
+  border-radius: 30px;
+  background: rgba(132, 238, 57, 0.1);
+  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  opacity: 0;
+  animation: bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) 1s forwards;
+  position: relative;
+  z-index: 10;
+}
+.slide-1-game-link:hover {
+  background: rgba(132, 238, 57, 0.25);
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(132, 238, 57, 0.3);
+}
+
+
+/* ==================== SLIDE 2 — Old Computers ==================== */
+.slide-2-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.slide-2-heading {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  text-align: center;
+  padding-top: 2rem;
+  color: var(--tangerine);
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.4), 0 0 30px rgba(255,123,58,0.3);
+}
+
+.slide-2-compare {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  padding: 1rem 3rem 2rem;
+}
+
+.slide-2-old {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  max-width: 45%;
+}
+
+.slide-2-computer {
+  cursor: pointer;
+  transition: transform 0.1s;
+  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+  position: relative;
+  width: clamp(180px, 30vw, 360px);
+  border-radius: 12px;
+  border: 3px solid var(--grape);
+}
+.slide-2-computer.shaking {
+  animation: shake-sparks 0.5s ease;
+}
+@keyframes shake-sparks {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  10% { transform: translateX(-8px) rotate(-3deg); }
+  30% { transform: translateX(8px) rotate(3deg); }
+  50% { transform: translateX(-6px) rotate(-2deg); }
+  70% { transform: translateX(6px) rotate(2deg); }
+  90% { transform: translateX(-3px) rotate(-1deg); }
+}
+
+.slide-2-computer-label {
+  font-family: 'Fredoka', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  color: var(--grape);
+  text-align: center;
+  font-weight: 600;
+}
+
+.slide-2-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.slide-2-fact {
+  background: linear-gradient(135deg, rgba(168,85,247,0.25), rgba(255,60,172,0.15));
+  border: 2px solid var(--grape);
+  border-radius: 20px;
+  padding: 0.6rem 1.2rem;
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.2s;
+  text-align: center;
+}
+.slide-2-fact:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(255,60,172,0.3));
+}
+
+.slide-2-vs {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--candy-red);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+  animation: pulse-vs 1.5s ease-in-out infinite;
+  align-self: center;
+}
+@keyframes pulse-vs {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+.slide-2-new {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  max-width: 45%;
+}
+
+.slide-2-phone {
+  font-size: clamp(4rem, 10vw, 8rem);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.3);
+  animation: phone-bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.6s forwards;
+  filter: drop-shadow(0 0 20px rgba(56,189,248,0.3));
+  transition: filter 0.3s;
+}
+.slide-2-phone.glowing {
+  filter: drop-shadow(0 0 40px rgba(56,189,248,0.8)) drop-shadow(0 0 80px rgba(56,189,248,0.4));
+}
+@keyframes phone-bounce-in {
+  to { opacity: 1; transform: scale(1); }
+}
+
+.slide-2-phone-label {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--sky-blue);
+}
+
+.slide-2-phone-fact {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: var(--mint);
+  text-align: center;
+  opacity: 0;
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) 1s forwards;
+}
+
+/* Spark particles */
+.spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sunny-yellow);
+  pointer-events: none;
+  animation: spark-fly 0.6s ease-out forwards;
+}
+@keyframes spark-fly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
+}
+
+
+/* ==================== SLIDE 3 — What's Coding ==================== */
+.slide-3-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.slide-3-heading {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  text-align: center;
+  padding-top: 1.5rem;
+  color: var(--lime-green);
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.4), 0 0 30px rgba(132,238,57,0.3);
+}
+
+.slide-3-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  padding: 1rem 4rem 2rem;
+}
+
+.slide-3-robot-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex: 0 0 auto;
+}
+
+.slide-3-robot {
+  font-size: clamp(5rem, 12vw, 9rem);
+  filter: drop-shadow(0 0 25px rgba(56,189,248,0.4));
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.slide-3-robot.confused {
+  animation: robot-confused 0.5s ease-in-out;
+}
+@keyframes robot-confused {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.slide-3-robot-speech {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  background: rgba(56,189,248,0.2);
+  border: 2px solid var(--sky-blue);
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  color: var(--sky-blue);
+  min-height: 2.5rem;
+  text-align: center;
+  max-width: 280px;
+}
+
+.slide-3-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  max-width: 55%;
+}
+
+.slide-3-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  opacity: 0.4;
+  transform: translateX(40px);
+  pointer-events: none;
+}
+.slide-3-step.available {
+  opacity: 0.8;
+  transform: translateX(0);
+  pointer-events: auto;
+  border-color: var(--sunny-yellow);
+  animation: step-glow 1.5s ease-in-out infinite alternate;
+}
+@keyframes step-glow {
+  0% { box-shadow: 0 0 5px rgba(255,227,71,0.2); }
+  100% { box-shadow: 0 0 20px rgba(255,227,71,0.4); }
+}
+.slide-3-step.revealed {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: none;
+  border-color: var(--lime-green);
+  background: linear-gradient(135deg, rgba(132,238,57,0.15), rgba(46,216,163,0.1));
+  animation: none;
+}
+
+.slide-3-step-number {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  color: var(--sunny-yellow);
+  min-width: 2.5rem;
+  text-align: center;
+}
+.slide-3-step.revealed .slide-3-step-number {
+  color: var(--lime-green);
+}
+
+.slide-3-step-text {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  color: #fff;
+  flex: 1;
+}
+
+.slide-3-step-emoji {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.slide-3-step.revealed .slide-3-step-emoji {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.slide-3-emphasis {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  text-align: center;
+  color: var(--pop-pink);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  opacity: 0;
+  padding-bottom: 2rem;
+  transition: opacity 0.5s;
+}
+.slide-3-emphasis.visible {
+  opacity: 1;
+  animation: emphasis-pulse 1s ease-in-out infinite;
+}
+@keyframes emphasis-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+
+/* ==================== SLIDES 4-6 STYLES ==================== */
+
+/* ========== SLIDE 4 — Let's See It Work! ========== */
+.slide-4-title {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  color: var(--sunny-yellow);
+  text-shadow: 4px 4px 0 var(--tangerine), 0 0 30px rgba(255, 227, 71, 0.4);
+  margin-bottom: 0.3em;
+  animation: slide4TitlePulse 2s ease-in-out infinite;
+}
+
+@keyframes slide4TitlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.slide-4-cat-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5em 0;
+}
+
+.slide-4-cat {
+  font-size: clamp(6rem, 14vw, 11rem);
+  line-height: 1;
+  transition: transform 0.1s;
+  filter: drop-shadow(0 0 20px rgba(255, 60, 172, 0.5));
+  position: relative;
+}
+
+.slide-4-cat.jump {
+  animation: catJump 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.slide-4-cat.spin {
+  animation: catSpin 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes catJump {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-120px) scale(1.15, 0.85); }
+  50% { transform: translateY(-140px) scale(0.9, 1.1); }
+  70% { transform: translateY(-60px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes catSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(360deg) scale(1.2); }
+  100% { transform: rotate(720deg) scale(1); }
+}
+
+.slide-4-buttons {
+  display: flex;
+  gap: 1.5em;
+  margin: 0.8em 0;
+}
+
+.slide-4-btn {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  padding: 0.4em 1.2em;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.15s;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.1);
+  letter-spacing: 1px;
+}
+
+.slide-4-btn:hover {
+  transform: scale(1.1) translateY(-3px);
+  box-shadow: 0 10px 0 rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.2);
+}
+
+.slide-4-btn:active {
+  transform: scale(0.95) translateY(2px);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+.slide-4-btn-jump {
+  background: var(--sky-blue);
+  color: #0F0A2E;
+}
+
+.slide-4-btn-spin {
+  background: var(--pop-pink);
+  color: #fff;
+}
+
+.slide-4-speech {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1.1rem, 2.5vw, 2rem);
+  text-align: center;
+  max-width: 80%;
+  line-height: 1.5;
+  color: #ddd;
+  margin-top: 0.4em;
+}
+
+.slide-4-speech em {
+  color: var(--lime-green);
+  font-style: normal;
+  font-weight: bold;
+}
+
+.slide-4-boss {
+  font-family: 'Fredoka', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.6rem);
+  color: var(--sunny-yellow);
+  margin-top: 0.3em;
+  animation: slide4BossBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes slide4BossBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ========== SLIDE 5 — Code is Everywhere! ========== */
+.slide-5-title {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2.2rem, 5.5vw, 4.5rem);
+  color: var(--sky-blue);
+  text-shadow: 4px 4px 0 var(--grape), 0 0 30px rgba(56, 189, 248, 0.4);
+  margin-bottom: 0.5em;
+  animation: slide5TitleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes slide5TitleGlow {
+  0% { text-shadow: 4px 4px 0 var(--grape), 0 0 20px rgba(56, 189, 248, 0.3); }
+  100% { text-shadow: 4px 4px 0 var(--grape), 0 0 40px rgba(56, 189, 248, 0.6); }
+}
+
+.slide-5-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.8rem, 2vw, 1.5rem);
+  max-width: 80vw;
+  width: 100%;
+  padding: 0 2vw;
+}
+
+.slide-5-card {
+  perspective: 800px;
+  cursor: pointer;
+  height: clamp(160px, 22vh, 240px);
+}
+
+.slide-5-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  transform-style: preserve-3d;
+}
+
+.slide-5-card.flipped .slide-5-card-inner {
+  transform: rotateY(180deg);
+}
+
+.slide-5-card-front,
+.slide-5-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  text-align: center;
+}
+
+.slide-5-card-front {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(255, 60, 172, 0.4));
+  border: 3px solid rgba(255,255,255,0.2);
+  font-size: clamp(3rem, 7vw, 5rem);
+  animation: cardMystery 1.5s ease-in-out infinite;
+}
+
+@keyframes cardMystery {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.slide-5-card.flipped .slide-5-card-front {
+  animation: none;
+}
+
+.slide-5-card-back {
+  transform: rotateY(180deg);
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.slide-5-card-back .card-emoji {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  margin-bottom: 0.2em;
+}
+
+.slide-5-card-back .card-label {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(0.9rem, 1.8vw, 1.4rem);
+  margin-bottom: 0.2em;
+}
+
+.slide-5-card-back .card-fact {
+  font-family: 'Fredoka', sans-serif;
+  font-size: clamp(0.65rem, 1.2vw, 0.95rem);
+  opacity: 0.9;
+  line-height: 1.3;
+}
+
+.slide-5-card:nth-child(1) .slide-5-card-back {
+  background: linear-gradient(135deg, #38BDF8, #0F0A2E);
+}
+.slide-5-card:nth-child(2) .slide-5-card-back {
+  background: linear-gradient(135deg, #A855F7, #0F0A2E);
+}
+.slide-5-card:nth-child(3) .slide-5-card-back {
+  background: linear-gradient(135deg, #FF7B3A, #0F0A2E);
+}
+.slide-5-card:nth-child(4) .slide-5-card-back {
+  background: linear-gradient(135deg, #FFE347, #0F0A2E);
+}
+
+/* Wave animation for voice assistant card */
+.voice-waves {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 0.3em;
+}
+.voice-waves span {
+  display: inline-block;
+  width: 5px;
+  background: var(--grape);
+  border-radius: 3px;
+  animation: voiceWave 0.8s ease-in-out infinite;
+}
+.voice-waves span:nth-child(1) { height: 12px; animation-delay: 0s; }
+.voice-waves span:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+.voice-waves span:nth-child(3) { height: 28px; animation-delay: 0.2s; }
+.voice-waves span:nth-child(4) { height: 20px; animation-delay: 0.3s; }
+.voice-waves span:nth-child(5) { height: 12px; animation-delay: 0.4s; }
+
+@keyframes voiceWave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.8); }
+}
+
+/* Rover wheels animation */
+.rover-wheels {
+  animation: roverDrive 2s linear infinite;
+}
+@keyframes roverDrive {
+  0% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  100% { transform: translateX(-5px); }
+}
+
+/* ========== SLIDE 6 — Your Turn! ========== */
+.slide-6-title {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  background: linear-gradient(90deg, #FF3CAC, #FFE347, #38BDF8, #84EE39, #FF7B3A, #A855F7, #FF3CAC);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbowText 3s linear infinite;
+  margin-bottom: 0.2em;
+}
+
+@keyframes rainbowText {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+.slide-6-message {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: clamp(1.1rem, 2.5vw, 2rem);
+  text-align: center;
+  max-width: 75%;
+  line-height: 1.6;
+  color: #ddd;
+  margin-bottom: 0.4em;
+}
+
+.slide-6-question {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  color: var(--sunny-yellow);
+  text-shadow: 3px 3px 0 var(--tangerine);
+  margin: 0.3em 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.slide-6-qmark {
+  font-size: 1.3em;
+  display: inline-block;
+  animation: qmarkBounce 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+  color: var(--pop-pink);
+}
+
+@keyframes qmarkBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-15px) rotate(-10deg); }
+  75% { transform: translateY(-5px) rotate(10deg); }
+}
+
+.slide-6-thankyou {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.5rem, 3.5vw, 3rem);
+  color: var(--mint);
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+  margin-top: 0.5em;
+  animation: thankYouPulse 2s ease-in-out infinite;
+}
+
+@keyframes thankYouPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+/* Floating decorations for slide 6 */
+.slide-6-floaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.slide-6-floater {
+  position: absolute;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  animation: floatUp linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+}
+
+.slide-6-celebrate-btn {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  padding: 0.5em 1.5em;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--pop-pink), var(--grape));
+  color: #fff;
+  cursor: pointer;
+  margin-top: 0.6em;
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.2s;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 25px rgba(255, 60, 172, 0.3);
+  animation: celebratePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes celebratePulse {
+  0%, 100% { box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 25px rgba(255, 60, 172, 0.3); }
+  50% { box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 40px rgba(255, 60, 172, 0.6); }
+}
+
+.slide-6-celebrate-btn:hover {
+  transform: scale(1.1) translateY(-3px);
+}
+
+.slide-6-celebrate-btn:active {
+  transform: scale(0.95) translateY(2px);
+}
+
+.slide-6-game-btn {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  padding: 0.5em 1.5em;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--lime-green), var(--sky-blue));
+  color: var(--bg-deep);
+  cursor: pointer;
+  margin-top: 0.5em;
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.2s;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 25px rgba(132, 238, 57, 0.3);
+  animation: gameBtnPulse 1.5s ease-in-out infinite;
+  text-decoration: none;
+  display: inline-block;
+}
+
+@keyframes gameBtnPulse {
+  0%, 100% { box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 25px rgba(132, 238, 57, 0.3); }
+  50% { box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 40px rgba(132, 238, 57, 0.6); }
+}
+
+.slide-6-game-btn:hover {
+  transform: scale(1.1) translateY(-3px);
+}
+
+.slide-6-game-btn:active {
+  transform: scale(0.95) translateY(2px);
+}
+</style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-layer bg-gradient"></div>
+
+<!-- Slides container -->
+<div class="slides-wrapper">
+
+  <!-- ==================== SLIDE 1 ==================== -->
+  <div class="slide" data-slide="1">
+    <div class="slide-1-content">
+      <span class="slide-1-float">&#x1F527;</span>
+      <span class="slide-1-float">&#x1F4BB;</span>
+      <span class="slide-1-float">&#x2328;&#xFE0F;</span>
+      <span class="slide-1-float">&#x2699;&#xFE0F;</span>
+      <span class="slide-1-float">&#x1F4A1;</span>
+      <span class="slide-1-float">&#x1F680;</span>
+
+      <div class="slide-1-wave" id="slide1-wave">&#x1F44B;</div>
+      <div class="slide-1-title">Hi! I'm Damon's Dad!</div>
+      <div class="slide-1-subtitle">I'm Mr. Brian</div>
+      <div class="slide-1-damon">I build things with computers!</div>
+      <a href="game.html" class="slide-1-game-link">&#x1F3AE; Play Room 110 Kitty Jump!</a>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 2 ==================== -->
+  <div class="slide" data-slide="2">
+    <div class="slide-2-content">
+      <div class="slide-2-heading">Computers Used to Be GIANT!</div>
+      <div class="slide-2-compare">
+        <div class="slide-2-old">
+          <img class="slide-2-computer" id="slide2-computer" src="eniac.png" alt="ENIAC Computer (1945)">
+          <div class="slide-2-computer-label">ENIAC (1945)</div>
+          <div class="slide-2-facts">
+            <div class="slide-2-fact" data-fact="It weighed 60,000 pounds &#x2014; that's like 5 elephants stacked up!">&#x1F418; Weighed as much as 5 elephants!</div>
+            <div class="slide-2-fact" data-fact="ENIAC was so big it filled an entire room &#x2014; bigger than your classroom!">&#x1F3EB; Filled an entire room!</div>
+            <div class="slide-2-fact" data-fact="Instead of tiny chips, it used 18,000 glowing glass tubes that got super hot!">&#x1F4A1; 18,000 glowing tubes!</div>
+          </div>
+        </div>
+
+        <div class="slide-2-vs">VS</div>
+
+        <div class="slide-2-new">
+          <div class="slide-2-phone" id="slide2-phone">&#x1F4F1;</div>
+          <div class="slide-2-phone-label">Now!</div>
+          <div class="slide-2-phone-fact">&#x1F92F; Billions of times faster!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 3 ==================== -->
+  <div class="slide" data-slide="3">
+    <div class="slide-3-content">
+      <div class="slide-3-heading">What's Coding? &#x1F914;</div>
+      <div class="slide-3-main">
+        <div class="slide-3-robot-area">
+          <div class="slide-3-robot" id="slide3-robot">&#x1F916;</div>
+          <div class="slide-3-robot-speech" id="slide3-speech">Click a step!</div>
+        </div>
+
+        <div class="slide-3-steps" id="slide3-steps">
+          <div class="slide-3-step available" data-step="0">
+            <div class="slide-3-step-number">&#x1F4AC;</div>
+            <div class="slide-3-step-text">"Hey robot, make me a sandwich!"</div>
+            <div class="slide-3-step-emoji">&#x2753;</div>
+          </div>
+          <div class="slide-3-step" data-step="1">
+            <div class="slide-3-step-number">1</div>
+            <div class="slide-3-step-text">"Pick up the bread"</div>
+            <div class="slide-3-step-emoji">&#x1F35E;</div>
+          </div>
+          <div class="slide-3-step" data-step="2">
+            <div class="slide-3-step-number">2</div>
+            <div class="slide-3-step-text">"Open the peanut butter"</div>
+            <div class="slide-3-step-emoji">&#x1FAD9;</div>
+          </div>
+          <div class="slide-3-step" data-step="3">
+            <div class="slide-3-step-number">3</div>
+            <div class="slide-3-step-text">"Grab the knife and spread it"</div>
+            <div class="slide-3-step-emoji">&#x1F52A;</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-3-emphasis" id="slide3-emphasis">Every. Single. Step. &#x1F4A5;</div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 4 — Let's See It Work! ========== -->
+  <div class="slide" data-slide="4">
+    <div class="slide-4-title">Let's See It Work!</div>
+    <div class="slide-4-cat-area">
+      <div class="slide-4-cat" id="slide4Cat">&#x1F431;</div>
+      <div class="slide-4-buttons">
+        <button class="slide-4-btn slide-4-btn-jump" id="slide4Jump">JUMP</button>
+        <button class="slide-4-btn slide-4-btn-spin" id="slide4Spin">SPIN</button>
+      </div>
+    </div>
+    <div class="slide-4-speech">
+      See this cat? I told the computer:<br>
+      <em>"When I press the button, make the cat JUMP."</em>
+    </div>
+    <div class="slide-4-boss">&#x1F451; I'm the boss of the cat because I wrote the code!</div>
+  </div>
+
+  <!-- ========== SLIDE 5 — Code is Everywhere! ========== -->
+  <div class="slide" data-slide="5">
+    <div class="slide-5-title">Code is Everywhere!</div>
+    <div class="slide-5-grid">
+      <div class="slide-5-card" data-card="1">
+        <div class="slide-5-card-inner">
+          <div class="slide-5-card-front">&#x2753;</div>
+          <div class="slide-5-card-back">
+            <div class="card-emoji">&#x1F3AE;</div>
+            <div class="card-label">Games on Tablets</div>
+            <div class="card-fact">Every game you play was built with code!</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-5-card" data-card="2">
+        <div class="slide-5-card-inner">
+          <div class="slide-5-card-front">&#x2753;</div>
+          <div class="slide-5-card-back">
+            <div class="card-emoji">&#x1F5E3;&#xFE0F;</div>
+            <div class="card-label">Alexa / Hey Google</div>
+            <div class="voice-waves">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="card-fact">Code listens to your voice and talks back!</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-5-card" data-card="3">
+        <div class="slide-5-card-inner">
+          <div class="slide-5-card-front">&#x2753;</div>
+          <div class="slide-5-card-back">
+            <div class="card-emoji rover-wheels">&#x1F916;</div>
+            <div class="card-label">Robot on Mars</div>
+            <div class="card-fact">A tiny helicopter named Ingenuity flew 72 times on Mars!</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-5-card" data-card="4">
+        <div class="slide-5-card-inner">
+          <div class="slide-5-card-front">&#x2753;</div>
+          <div class="slide-5-card-back">
+            <div class="card-emoji">&#x1F680; &#x1F319;</div>
+            <div class="card-label">Moon Landing</div>
+            <div class="card-fact">Your parent's phone is millions of times more powerful than the Moon computer!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SLIDE 6 — Your Turn! ========== -->
+  <div class="slide" data-slide="6">
+    <div class="slide-6-floaters" id="slide6Floaters"></div>
+    <div class="slide-6-title">Your Turn!</div>
+    <div class="slide-6-message">
+      YOU could do my job one day!<br>
+      Every game, every app, every robot<br>
+      started with someone having an idea.
+    </div>
+    <div class="slide-6-question">
+      What game would YOU make? <span class="slide-6-qmark">?</span>
+    </div>
+    <button class="slide-6-celebrate-btn" id="slide6Celebrate">&#x1F389; CELEBRATE! &#x1F389;</button>
+    <a href="game.html" class="slide-6-game-btn" id="slide6Game">&#x1F3AE; LET'S MAKE A GAME! &#x1F3AE;</a>
+    <div class="slide-6-thankyou">Thank you Stratford 1st Graders!</div>
+  </div>
+
+</div>
+
+<!-- Navigation buttons -->
+<button class="nav-btn nav-prev" id="navPrev" onclick="prevSlide()">&#x2B05;&#xFE0F;</button>
+<button class="nav-btn nav-next" id="navNext" onclick="nextSlide()">&#x27A1;&#xFE0F;</button>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Slide number -->
+<div class="slide-number" id="slideNumber"></div>
+
+<script>
+  // ==============================
+  // SOUND SYSTEM (Web Audio API)
+  // ==============================
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx;
+
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playSound(type) {
+    try {
+      ensureAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      switch (type) {
+        case 'pop':
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.15);
+          break;
+        case 'whoosh':
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+          break;
+        case 'ding':
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.4);
+          break;
+        default:
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+      }
+    } catch (e) {}
+  }
+
+  // ==============================
+  // CONFETTI
+  // ==============================
+  function burstConfetti(x, y) {
+    const colors = ['#FF3CAC', '#FFE347', '#38BDF8', '#84EE39', '#FF7B3A', '#A855F7', '#FF4757', '#2ED8A3'];
+    for (let i = 0; i < 30; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 80 + Math.random() * 200;
+      confetti.style.left = x + 'px';
+      confetti.style.top = y + 'px';
+      confetti.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+      confetti.style.setProperty('--dy', Math.sin(angle) * distance - 100 + 'px');
+      confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.width = (6 + Math.random() * 10) + 'px';
+      confetti.style.height = (6 + Math.random() * 10) + 'px';
+      confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 1500);
+    }
+  }
+
+  // ==============================
+  // SPARKLE TRAIL
+  // ==============================
+  const sparkleEmojis = ['✨', '⭐', '💫', '🌟', '💖'];
+  let lastSparkleTime = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if (now - lastSparkleTime < 100) return;
+    lastSparkleTime = now;
+
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle-trail';
+    sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.style.left = e.clientX + 'px';
+    sparkle.style.top = e.clientY + 'px';
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 800);
+  });
+
+  // ==============================
+  // SLIDE NAVIGATION
+  // ==============================
+  const TOTAL_SLIDES = 6;
+  let currentSlide = 1;
+
+  function showSlide(n) {
+    if (n < 1 || n > TOTAL_SLIDES) return;
+    currentSlide = n;
+
+    // Hide all slides
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+
+    // Show current slide
+    const slide = document.querySelector(`.slide[data-slide="${n}"]`);
+    if (slide) slide.classList.add('active');
+
+    // Update navigation buttons
+    const prevBtn = document.getElementById('navPrev');
+    const nextBtn = document.getElementById('navNext');
+    prevBtn.classList.toggle('hidden', n === 1);
+    nextBtn.classList.toggle('hidden', n === TOTAL_SLIDES);
+
+    // Update progress bar
+    const progress = document.getElementById('progressBar');
+    progress.style.width = ((n / TOTAL_SLIDES) * 100) + '%';
+
+    // Update slide number
+    document.getElementById('slideNumber').textContent = n + ' / ' + TOTAL_SLIDES;
+
+    // Sound
+    playSound('whoosh');
+  }
+
+  function nextSlide() {
+    showSlide(currentSlide + 1);
+  }
+
+  function prevSlide() {
+    if (currentSlide === 1) {
+      window.location.href = 'index.html';
+      return;
+    }
+    showSlide(currentSlide - 1);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    else if (e.key === 'ArrowLeft') prevSlide();
+  });
+
+  // Init first slide
+  showSlide(1);
+
+  // ==============================
+  // SLIDES 1-3 INTERACTIONS
+  // ==============================
+
+  /* Slide 1: Confetti on wave click */
+  const wave = document.getElementById('slide1-wave');
+  if (wave) {
+    wave.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const rect = wave.getBoundingClientRect();
+      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      playSound('pop');
+    });
+  }
+
+  /* Slide 2: Old computer shake + sparks */
+  const oldComputer = document.getElementById('slide2-computer');
+  if (oldComputer) {
+    oldComputer.addEventListener('click', function(e) {
+      e.stopPropagation();
+      oldComputer.classList.remove('shaking');
+      void oldComputer.offsetWidth;
+      oldComputer.classList.add('shaking');
+      playSound('pop');
+      const rect = oldComputer.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      for (let i = 0; i < 12; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        const angle = (Math.PI * 2 * i) / 12;
+        const dist = 40 + Math.random() * 60;
+        spark.style.left = cx + 'px';
+        spark.style.top = cy + 'px';
+        spark.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+        spark.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+        spark.style.background = ['#FFE347','#FF3CAC','#FF7B3A','#A855F7'][i % 4];
+        spark.style.position = 'fixed';
+        spark.style.zIndex = '9999';
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 600);
+      }
+      setTimeout(() => oldComputer.classList.remove('shaking'), 500);
+    });
+  }
+
+  /* Slide 2: Phone glow */
+  const phone = document.getElementById('slide2-phone');
+  if (phone) {
+    phone.addEventListener('click', function(e) {
+      e.stopPropagation();
+      phone.classList.add('glowing');
+      playSound('ding');
+      setTimeout(() => phone.classList.remove('glowing'), 1200);
+    });
+  }
+
+  /* Slide 2: Fact bubble popups */
+  document.querySelectorAll('.slide-2-fact').forEach(function(fact) {
+    fact.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const detail = fact.getAttribute('data-fact');
+      if (detail) {
+        playSound('ding');
+        let popup = document.createElement('div');
+        popup.textContent = detail;
+        popup.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#A855F7,#FF3CAC);color:#fff;font-family:"Bubblegum Sans",cursive;font-size:1.8rem;padding:1.5rem 2rem;border-radius:24px;z-index:10000;text-align:center;max-width:500px;box-shadow:0 0 60px rgba(168,85,247,0.5);transition:transform 0.4s cubic-bezier(0.68,-0.55,0.27,1.55);';
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => { popup.style.transform = 'translate(-50%,-50%) scale(1)'; });
+        setTimeout(() => {
+          popup.style.transform = 'translate(-50%,-50%) scale(0)';
+          setTimeout(() => popup.remove(), 400);
+        }, 2500);
+      }
+    });
+  });
+
+  /* Slide 3: PB&J step reveal */
+  let currentStep = 0;
+  const steps = document.querySelectorAll('.slide-3-step');
+  const robot = document.getElementById('slide3-robot');
+  const speech = document.getElementById('slide3-speech');
+  const emphasis = document.getElementById('slide3-emphasis');
+
+  const speeches = [
+    "Huh?! What's a sandwich?!",
+    "OK! Picking up bread...",
+    "Twisting the lid... open!",
+    "Got the knife! Spreading..."
+  ];
+
+  steps.forEach(function(step) {
+    step.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const idx = parseInt(step.getAttribute('data-step'));
+      if (idx !== currentStep) return;
+
+      step.classList.remove('available');
+      step.classList.add('revealed');
+
+      if (robot) {
+        robot.classList.add('confused');
+        setTimeout(() => robot.classList.remove('confused'), 500);
+      }
+      if (speech) {
+        speech.textContent = speeches[idx] || '';
+      }
+
+      playSound('ding');
+      currentStep++;
+
+      if (currentStep < steps.length) {
+        steps[currentStep].classList.add('available');
+      }
+
+      if (currentStep >= steps.length && emphasis) {
+        setTimeout(() => emphasis.classList.add('visible'), 500);
+      }
+    });
+  });
+
+  // ==============================
+  // SLIDES 4-6 INTERACTIONS
+  // ==============================
+
+  /* Slide 4: Cat buttons */
+  const cat = document.getElementById('slide4Cat');
+  const jumpBtn = document.getElementById('slide4Jump');
+  const spinBtn = document.getElementById('slide4Spin');
+
+  if (jumpBtn) {
+    jumpBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      playSound('pop');
+      cat.classList.remove('jump', 'spin');
+      void cat.offsetWidth;
+      cat.classList.add('jump');
+      cat.addEventListener('animationend', function handler() {
+        cat.classList.remove('jump');
+        cat.removeEventListener('animationend', handler);
+      });
+    });
+  }
+
+  if (spinBtn) {
+    spinBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      playSound('pop');
+      cat.classList.remove('jump', 'spin');
+      void cat.offsetWidth;
+      cat.classList.add('spin');
+      cat.addEventListener('animationend', function handler() {
+        cat.classList.remove('spin');
+        cat.removeEventListener('animationend', handler);
+      });
+    });
+  }
+
+  /* Slide 5: Flip cards */
+  document.querySelectorAll('.slide-5-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!card.classList.contains('flipped')) {
+        card.classList.add('flipped');
+        playSound('ding');
+        const rect = card.getBoundingClientRect();
+        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+    });
+  });
+
+  /* Slide 6: Floating decorations */
+  const floaterContainer = document.getElementById('slide6Floaters');
+  const floaterEmojis = ['💡', '⭐', '🚀', '✨', '🌟', '💫', '🎮', '🤖'];
+  if (floaterContainer) {
+    for (let i = 0; i < 14; i++) {
+      const el = document.createElement('div');
+      el.className = 'slide-6-floater';
+      el.textContent = floaterEmojis[i % floaterEmojis.length];
+      el.style.left = (Math.random() * 90 + 5) + '%';
+      el.style.animationDuration = (6 + Math.random() * 8) + 's';
+      el.style.animationDelay = (Math.random() * 10) + 's';
+      floaterContainer.appendChild(el);
+    }
+  }
+
+  /* Slide 6: Celebrate button */
+  const celebrateBtn = document.getElementById('slide6Celebrate');
+  if (celebrateBtn) {
+    celebrateBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      playSound('pop');
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      burstConfetti(w * 0.25, h * 0.4);
+      setTimeout(() => burstConfetti(w * 0.75, h * 0.3), 150);
+      setTimeout(() => burstConfetti(w * 0.5, h * 0.5), 300);
+      setTimeout(() => burstConfetti(w * 0.3, h * 0.6), 450);
+      setTimeout(() => burstConfetti(w * 0.7, h * 0.6), 600);
+    });
+  }
+</script>
+</body>
+</html>
